@@ -242,7 +242,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
 - **Phase 1 — HTTP fundamentals**
   - [x] 1.1 Minimal Express server
   - [x] 1.2 Typed, validated config
-  - [ ] 1.3 Structured logging + request IDs
+  - [x] 1.3 Structured logging + request IDs
   - [ ] 1.4 Graceful shutdown
   - [ ] 1.5 Security middlewares
   - [ ] 1.6 Error handling
