@@ -236,12 +236,12 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
 ## Progress tracker
 
 - **Phase 0 — Foundation**
-  - [ ] 0.1 Initialize the monorepo
-  - [ ] 0.2 TypeScript + ESLint + Prettier
-  - [ ] 0.3 Git hooks (husky, lint-staged, commitlint)
+  - [x] 0.1 Initialize the monorepo
+  - [x] 0.2 TypeScript + ESLint + Prettier
+  - [x] 0.3 Git hooks (husky, lint-staged, commitlint)
 - **Phase 1 — HTTP fundamentals**
-  - [ ] 1.1 Minimal Express server
-  - [ ] 1.2 Typed, validated config
+  - [x] 1.1 Minimal Express server
+  - [x] 1.2 Typed, validated config
   - [ ] 1.3 Structured logging + request IDs
   - [ ] 1.4 Graceful shutdown
   - [ ] 1.5 Security middlewares

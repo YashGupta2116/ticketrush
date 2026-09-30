@@ -1,5 +1,4 @@
 import { createApp } from '@/app';
+import { env } from '@/config/env';
 
-const PORT = 4000;
-
-createApp().listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+createApp().listen(env.PORT, () => console.log(`API listening on http://localhost:${env.PORT}`));
