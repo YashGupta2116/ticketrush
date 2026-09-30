@@ -1,15 +1,19 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
   "type": "module",
+  "files": [
+    "dist",
+    "drizzle"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "typecheck": "tsc",
+    "test": "echo \"no tests yet\""
+  },
   "dependencies": {
     "express": "^5.2.1"
   },
