@@ -249,8 +249,8 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 1.7 `route()` helper + module structure
 - **Phase 2 — Infrastructure**
   - [x] 2.1 Docker compose (Postgres + Redis)
-  - [ ] 2.2 Drizzle + first table
-  - [ ] 2.3 Redis client + readiness probe
+  - [x] 2.2 Drizzle + first table
+  - [x] 2.3 Redis client + readiness probe
   - [ ] 2.4 Test harness
 - **Phase 3 — Data model**
   - [ ] 3.1 Catalog tables

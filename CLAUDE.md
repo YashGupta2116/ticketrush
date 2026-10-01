@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phase 0 done (0.1–0.3); Phase 1 done (1.1–1.7). 2.1 done (`pnpm infra:up` for Postgres+Redis). Next: 2.2 Drizzle + first table.
+Current position: Phase 0 done (0.1–0.3); Phase 1 done (1.1–1.7). 2.1 done (`pnpm infra:up` for Postgres+Redis). 2.2 done (Drizzle, `db:generate`/`db:migrate`, users table). 2.3 done (Redis client, `/health/ready`). Next: 2.4 test harness.
 
 ## Project
 
