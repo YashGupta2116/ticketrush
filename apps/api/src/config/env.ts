@@ -10,6 +10,7 @@ const schema = z.object({
     .transform((value) => value.split(',').map((origin) => origin.trim())),
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DATABASE_URL: z.url(),
+  REDIS_URL: z.url(),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 
