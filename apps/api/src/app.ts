@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from '@/config/env';
+import { errorHandler, notFound } from '@/middlewares/error-handler';
 import { httpLogger } from '@/middlewares/http-logger';
 
 export const createApp = () => {
@@ -18,6 +19,9 @@ export const createApp = () => {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
+
+  app.use(notFound);
+  app.use(errorHandler);
 
   return app;
 };
