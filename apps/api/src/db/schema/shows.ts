@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -12,6 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { id, timestamps } from '../columns';
+import { bookings } from './bookings';
 import { events } from './events';
 import { seats, venues, type SeatTier } from './venues';
 
@@ -51,12 +53,13 @@ export const showSeats = pgTable(
       .references(() => seats.id),
     priceCents: integer().notNull(),
     status: showSeatStatus().notNull().default('available'),
-    bookingId: uuid(), //TODO: FK to bookings added in step 3.2
+    bookingId: uuid().references((): AnyPgColumn => bookings.id, { onDelete: 'set null' }),
     version: integer().notNull().default(0),
   },
   (table) => [
     unique('uq_show_seat').on(table.showId, table.seatId),
     index('show_seats_show_id_status_idx').on(table.showId, table.status),
+    index('show_seats_booking_id_idx').on(table.bookingId),
     check('ck_show_seats_price', sql`${table.priceCents} >= 0`),
   ],
 );
