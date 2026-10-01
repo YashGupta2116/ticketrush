@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -16,6 +17,7 @@ export const createApp = () => {
     helmet(),
     cors({ origin: env.CORS_ORIGINS, credentials: true }),
     express.json({ limit: '100kb' }),
+    cookieParser(),
   );
 
   app.use('/health', healthRouter);

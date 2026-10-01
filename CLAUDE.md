@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–2 done (repo foundation, HTTP fundamentals, infra + test harness). 3.1 done. Next: 3.2 booking & payment tables.
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); 4.1 auth primitives done. Next: 4.2 register + login (your business logic).
 
 ## Project
 

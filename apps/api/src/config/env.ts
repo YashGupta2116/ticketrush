@@ -11,6 +11,9 @@ const schema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DATABASE_URL: z.url(),
   REDIS_URL: z.url(),
+  JWT_ACCESS_SECRET: z.string().min(32),
+  JWT_ACCESS_TTL: z.string().default('15m'),
+  REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

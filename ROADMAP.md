@@ -254,9 +254,9 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 2.4 Test harness
 - **Phase 3 — Data model**
   - [x] 3.1 Catalog tables
-  - [ ] 3.2 Booking & payment tables
+  - [x] 3.2 Booking & payment tables
 - **Phase 4 — Auth**
-  - [ ] 4.1 Auth primitives
+  - [x] 4.1 Auth primitives
   - [ ] 4.2 Register + login
   - [ ] 4.3 Refresh rotation + reuse detection + logout
   - [ ] 4.4 `/me` + admin guard
