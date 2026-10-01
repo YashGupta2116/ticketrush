@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phase 0 done (0.1–0.3); Phase 1 done (1.1–1.7). 2.1 done (`pnpm infra:up` for Postgres+Redis). 2.2 done (Drizzle, `db:generate`/`db:migrate`, users table). 2.3 done (Redis client, `/health/ready`). Next: 2.4 test harness.
+Current position: Phases 0–2 done (repo foundation, HTTP fundamentals, infra + test harness). Next: 3.1 catalog tables.
 
 ## Project
 
@@ -34,7 +34,7 @@ pnpm test                       # pnpm -r test
 pnpm --filter api build         # tsup -> apps/api/dist
 ```
 
-Tests will use Vitest (roadmap step 2.4); once set up, a single test is `pnpm --filter api exec vitest run path/to/file.test.ts -t "name"`.
+Tests are Vitest + Supertest integration tests against real Postgres (`ticketrush_test`) and Redis (db 1), so `pnpm infra:up` must be running. Config is loaded from `apps/api/.env.test`; `test/setup.ts` truncates all public tables and flushes Redis before each test, and migrations run in `globalSetup`. Files run serially (shared DB). Single test: `pnpm --filter api exec vitest run test/health.test.ts -t "name"`; watch mode: `pnpm --filter api test:watch`.
 
 ## Architecture & conventions (planned; enforce as code lands)
 

@@ -251,7 +251,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 2.1 Docker compose (Postgres + Redis)
   - [x] 2.2 Drizzle + first table
   - [x] 2.3 Redis client + readiness probe
-  - [ ] 2.4 Test harness
+  - [x] 2.4 Test harness
 - **Phase 3 — Data model**
   - [ ] 3.1 Catalog tables
   - [ ] 3.2 Booking & payment tables
