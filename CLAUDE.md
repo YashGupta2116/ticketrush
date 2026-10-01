@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phase 0 done (0.1–0.3); Phase 1 done (1.1–1.7). Next: 2.1 Docker compose (Postgres + Redis).
+Current position: Phase 0 done (0.1–0.3); Phase 1 done (1.1–1.7). 2.1 done (`pnpm infra:up` for Postgres+Redis). Next: 2.2 Drizzle + first table.
 
 ## Project
 
@@ -24,6 +24,8 @@ TicketRush: flash-sale ticket booking with zero double bookings under concurrenc
 pnpm workspace (Node >=24, pnpm 11). Run from the repo root:
 
 ```bash
+pnpm infra:up                   # docker compose: Postgres 17 (+ ticketrush_test DB) and Redis 7
+pnpm infra:down
 pnpm dev:api                    # tsx watch apps/api/src/server.ts (port 4000)
 pnpm lint                       # eslint .
 pnpm format                     # prettier --write .

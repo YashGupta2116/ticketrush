@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ticketrush
+      POSTGRES_PASSWORD: ticketrush
+      POSTGRES_DB: ticketrush
+    ports: ['5432:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ticketrush']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports: ['6379:6379']
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  redisdata:
