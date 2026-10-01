@@ -243,7 +243,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 1.1 Minimal Express server
   - [x] 1.2 Typed, validated config
   - [x] 1.3 Structured logging + request IDs
-  - [ ] 1.4 Graceful shutdown
+  - [x] 1.4 Graceful shutdown
   - [ ] 1.5 Security middlewares
   - [ ] 1.6 Error handling
   - [ ] 1.7 `route()` helper + module structure
