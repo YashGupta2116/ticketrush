@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phase 0 done (0.1–0.3); Phase 1 steps 1.1–1.4 done. Next: 1.5 security middlewares.
+Current position: Phase 0 done (0.1–0.3); Phase 1 steps 1.1–1.5 done. Next: 1.6 error handling.
 
 ## Project
 
