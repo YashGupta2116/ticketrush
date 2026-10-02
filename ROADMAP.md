@@ -258,7 +258,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
 - **Phase 4 — Auth**
   - [x] 4.1 Auth primitives
   - [x] 4.2 Register + login
-  - [ ] 4.3 Refresh rotation + reuse detection + logout
+  - [x] 4.3 Refresh rotation + reuse detection + logout
   - [ ] 4.4 `/me` + admin guard
 - **Phase 5 — Catalog**
   - [ ] 5.1 Shared schema & pagination helpers

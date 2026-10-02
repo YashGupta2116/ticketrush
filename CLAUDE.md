@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); 4.1–4.2 done (auth primitives, register + login). Next: 4.3 refresh rotation + reuse detection + logout.
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); 4.1–4.3 done (auth primitives, register + login, refresh rotation + logout). Next: 4.4 `/me` + admin guard.
 
 ## Project
 
