@@ -257,7 +257,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 3.2 Booking & payment tables
 - **Phase 4 — Auth**
   - [x] 4.1 Auth primitives
-  - [ ] 4.2 Register + login
+  - [x] 4.2 Register + login
   - [ ] 4.3 Refresh rotation + reuse detection + logout
   - [ ] 4.4 `/me` + admin guard
 - **Phase 5 — Catalog**
