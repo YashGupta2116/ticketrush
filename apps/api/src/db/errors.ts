@@ -5,3 +5,4 @@ const pgCode = (err: unknown) => {
 };
 
 export const isUniqueViolation = (err: unknown) => pgCode(err) === '23505';
+export const isForeignKeyViolation = (err: unknown) => pgCode(err) === '23503';
