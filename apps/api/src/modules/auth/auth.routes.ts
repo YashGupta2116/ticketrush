@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { login, logout, refresh, register } from './auth.service';
+import { getMe, login, logout, refresh, register } from './auth.service';
 import { route } from '@/lib/route';
 import { noInput } from '@/lib/schemas';
 import { loginSchema, registerSchema } from './auth.schema';
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './auth.cookies';
+import { authenticate, currentUser } from '@/middlewares/auth';
 
 export const authRouter = Router();
 
@@ -48,5 +49,13 @@ authRouter.post(
     await logout(readRefreshCookie(req));
     clearRefreshCookie(res);
     return null;
+  }),
+);
+
+authRouter.get(
+  '/me',
+  authenticate,
+  route(noInput, async (_input, { req }) => {
+    return await getMe(currentUser(req).id);
   }),
 );

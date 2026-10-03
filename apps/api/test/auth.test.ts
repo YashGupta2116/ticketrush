@@ -1,6 +1,7 @@
+import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { api, createUser, TEST_PASSWORD } from './helpers';
-import { refreshTokens } from '@/db/schema';
+import { refreshTokens, users } from '@/db/schema';
 import { db } from '@/db';
 
 const valid = { name: 'Asha Rao', email: 'asha@example.com', password: 'Password123!' };
@@ -168,5 +169,38 @@ describe('POST /api/v1/auth/logout', () => {
 
   it('is idempotent without a cookie', async () => {
     expect((await api.post('/api/v1/auth/logout')).status).toBe(200);
+  });
+});
+
+describe('GET /api/v1/auth/me', () => {
+  it('reject a request without token', async () => {
+    const res = await api.get('/api/v1/auth/me');
+    expect(res.status).toBe(401);
+  });
+
+  it('reject a request with wrong token', async () => {
+    const token = `ascjkabcobaobcsanbcoasasa`;
+    const res = await api.get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('returns the current user', async () => {
+    const { user, auth } = await createUser();
+    const res = await api.get('/api/v1/auth/me').set(auth);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  });
+
+  it('rejects a valid token whose user no longer exists', async () => {
+    const { user, auth } = await createUser();
+    await db.delete(users).where(eq(users.id, user.id));
+
+    const res = await api.get('/api/v1/auth/me').set(auth);
+    expect(res.status).toBe(401);
   });
 });

@@ -74,12 +74,14 @@ export const refresh = async (token: string | undefined) => {
   const stored = await db.query.refreshTokens.findFirst({
     where: eq(refreshTokens.tokenHash, sha256(token)),
   });
+
   if (!stored) throw invalidRefresh();
 
   if (stored.revokedAt) {
     await revokeFamily(stored.familyId);
     throw invalidRefresh();
   }
+
   if (stored.expiresAt < new Date()) throw invalidRefresh();
 
   const session = await db.transaction(async (tx) => {
@@ -88,9 +90,11 @@ export const refresh = async (token: string | undefined) => {
       .set({ revokedAt: new Date() })
       .where(and(eq(refreshTokens.id, stored.id), isNull(refreshTokens.revokedAt)))
       .returning({ id: refreshTokens.id });
+
     if (!claimed) return null;
 
     const user = await tx.query.users.findFirst({ where: eq(users.id, stored.userId) });
+
     if (!user) throw invalidRefresh();
 
     return {
@@ -103,13 +107,24 @@ export const refresh = async (token: string | undefined) => {
     await revokeFamily(stored.familyId);
     throw invalidRefresh();
   }
+
   return session;
 };
 
 export const logout = async (token: string | undefined) => {
   if (!token) return;
+
   const stored = await db.query.refreshTokens.findFirst({
     where: eq(refreshTokens.tokenHash, sha256(token)),
   });
+
   if (stored) await revokeFamily(stored.familyId);
+};
+
+export const getMe = async (userId: string) => {
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+
+  if (!user) throw Errors.unauthorized();
+
+  return toPublicUser(user);
 };

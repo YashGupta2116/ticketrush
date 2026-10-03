@@ -259,7 +259,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 4.1 Auth primitives
   - [x] 4.2 Register + login
   - [x] 4.3 Refresh rotation + reuse detection + logout
-  - [ ] 4.4 `/me` + admin guard
+  - [x] 4.4 `/me` + admin guard
 - **Phase 5 — Catalog**
   - [ ] 5.1 Shared schema & pagination helpers
   - [ ] 5.2 Venues with seat layouts
