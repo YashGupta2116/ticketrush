@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). Next: 5.1 shared schema & pagination helpers.
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1 done (idParams, cursor pagination helpers). Next: 5.2 venues with seat layouts.
 
 ## Project
 
