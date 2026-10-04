@@ -2,7 +2,7 @@ import { and, asc, eq, gt, gte, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { isForeignKeyViolation } from '@/db/errors';
-import { events, seats, shows, venues } from '@/db/schema';
+import { events, seats, shows, showSeats, venues } from '@/db/schema';
 import { Errors } from '@/lib/errors';
 import { decodeCursor, paginate } from '@/lib/pagination';
 import type { createShowSchema, listShowsSchema } from './shows.schema';
@@ -116,4 +116,29 @@ export const getShow = async (id: string) => {
   if (!row) throw Errors.notFound('Show not found');
 
   return { ...row.show, onSale: isOnSale({ show: row.show }), event: row.event, venue: row.venue };
+};
+
+export const getSeatMap = async (showId: string) => {
+  // An existing show always has seats, so an empty result can only mean the show is unknown.
+  const show = await db.query.shows.findFirst({
+    columns: { id: true },
+    where: eq(shows.id, showId),
+  });
+  if (!show) throw Errors.notFound('Show not found');
+
+  // `id` is the show_seat id: that is what gets held and booked, not the physical seat's id.
+  return db
+    .select({
+      id: showSeats.id,
+      section: seats.section,
+      row: seats.row,
+      number: seats.number,
+      tier: seats.tier,
+      priceCents: showSeats.priceCents,
+      status: showSeats.status,
+    })
+    .from(showSeats)
+    .innerJoin(seats, eq(showSeats.seatId, seats.id))
+    .where(eq(showSeats.showId, showId))
+    .orderBy(asc(seats.section), asc(seats.row), asc(seats.number));
 };
