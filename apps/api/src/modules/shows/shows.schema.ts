@@ -1,5 +1,6 @@
 import { seatTier } from '@/db/schema';
 import { z } from 'zod';
+import { paginationQuery } from '@/lib/pagination';
 
 const price = z.number().int().min(0);
 
@@ -29,4 +30,11 @@ export const createShowSchema = z.object({
         });
       }
     }),
+});
+
+export const listShowsSchema = z.object({
+  query: paginationQuery.extend({
+    city: z.string().trim().min(1).optional(),
+    from: z.coerce.date().optional(),
+  }),
 });
