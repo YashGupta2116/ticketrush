@@ -16,7 +16,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=.env src/scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:seed": "tsx --env-file=.env src/scripts/seed.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",

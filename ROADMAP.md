@@ -266,7 +266,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 5.3 Events & shows + seat inventory
   - [x] 5.4 Browse shows (keyset pagination)
   - [x] 5.5 Seat map
-  - [ ] 5.6 Seed script
+  - [x] 5.6 Seed script
 - **Phase 6 — Seat holds**
   - [ ] 6.1 Redis script helper
   - [ ] 6.2 Hold seats atomically

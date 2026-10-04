@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). 5.5 done (seat map). Next: 5.6 seed script.
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Next: Phase 6 seat holds (6.1 Redis script helper).
 
 ## Project
 
@@ -26,6 +26,8 @@ pnpm workspace (Node >=24, pnpm 11). Run from the repo root:
 ```bash
 pnpm infra:up                   # docker compose: Postgres 17 (+ ticketrush_test DB) and Redis 7
 pnpm infra:down
+pnpm --filter api db:migrate   # apply Drizzle migrations to the dev database
+pnpm --filter api db:seed      # demo admin (admin@ticketrush.dev) + venue + 3 shows; idempotent
 pnpm dev:api                    # tsx watch apps/api/src/server.ts (port 4000)
 pnpm lint                       # eslint .
 pnpm format                     # prettier --write .
