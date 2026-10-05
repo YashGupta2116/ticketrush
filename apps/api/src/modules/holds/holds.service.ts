@@ -6,7 +6,8 @@ import { env } from '@/config/env';
 import { AppError, Errors } from '@/lib/errors';
 import { isOnSale } from '@/modules/shows/shows.service';
 import { metaKey, seatKey, userKey } from './holds.keys';
-import { holdScript } from './holds.scripts';
+import { holdScript, releaseScript } from './holds.scripts';
+import { redis } from '@/lib/redis';
 
 const seatsUnavailable = (showSeatIds: string[]) =>
   new AppError(409, 'Some seats are no longer available', 'SEATS_UNAVAILABLE', { showSeatIds });
@@ -54,4 +55,21 @@ export const holdSeats = async (userId: string, showId: string, showSeatIds: str
   }
 
   return { holdId, showSeatIds, expiresAt };
+};
+
+export const releaseHold = async (userId: string, showId: string, holdId: string) => {
+  const raw = await redis.get(metaKey(showId, holdId)); // which key stores a hold's meta?
+  if (!raw) throw Errors.notFound('Hold not found');
+
+  const meta = JSON.parse(raw) as { userId: string; showSeatIds: string[] };
+  if (meta.userId !== userId) throw Errors.notFound('Hold not found');
+
+  await releaseScript(
+    [
+      userKey(showId, userId),
+      metaKey(showId, holdId),
+      ...meta.showSeatIds.map((id) => seatKey(showId, id)),
+    ],
+    [holdId],
+  );
 };

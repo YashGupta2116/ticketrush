@@ -34,3 +34,23 @@ export const holdScript = defineScript<[string, ...number[]]>(`
   redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])
   return { 'ok' }
 `);
+
+/**
+ * KEYS[1] = user key, KEYS[2] = meta key, KEYS[3..n] = seat keys
+ * ARGV[1] = holdId
+ * Returns how many seat keys were released.
+ */
+export const releaseScript = defineScript<number>(`
+  local released = 0
+  for i = 3, #KEYS do
+    if redis.call('GET', KEYS[i]) == ARGV[1] then     -- still MY hold?
+      redis.call('DEL', KEYS[i])
+      released = released + 1
+    end
+  end
+  redis.call('DEL', KEYS[2])                        -- the meta key
+  if redis.call('GET', KEYS[1]) == ARGV[1] then     -- the user key, only if it is still mine
+    redis.call('DEL', KEYS[1])
+  end
+  return released
+`);

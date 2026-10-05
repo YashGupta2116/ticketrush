@@ -11,3 +11,10 @@ export const holdSeatsSchema = z.object({
       .refine((ids) => new Set(ids).size === ids.length, 'showSeatIds must be unique'),
   }),
 });
+
+export const releaseHoldSchema = z.object({
+  params: z.object({
+    id: z.uuid(),
+    showId: z.uuid(),
+  }),
+});

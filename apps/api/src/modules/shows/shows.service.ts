@@ -6,6 +6,8 @@ import { events, seats, shows, showSeats, venues } from '@/db/schema';
 import { Errors } from '@/lib/errors';
 import { decodeCursor, paginate } from '@/lib/pagination';
 import type { createShowSchema, listShowsSchema } from './shows.schema';
+import { redis } from '@/lib/redis';
+import { seatKey } from '../holds/holds.keys';
 
 type CreateShowInput = z.infer<typeof createShowSchema>['body'];
 type ListShowsQuery = z.infer<typeof listShowsSchema>['query'];
@@ -127,7 +129,7 @@ export const getSeatMap = async (showId: string) => {
   if (!show) throw Errors.notFound('Show not found');
 
   // `id` is the show_seat id: that is what gets held and booked, not the physical seat's id.
-  return db
+  const rows = await db
     .select({
       id: showSeats.id,
       section: seats.section,
@@ -141,4 +143,11 @@ export const getSeatMap = async (showId: string) => {
     .innerJoin(seats, eq(showSeats.seatId, seats.id))
     .where(eq(showSeats.showId, showId))
     .orderBy(asc(seats.section), asc(seats.row), asc(seats.number));
+
+  const holds = rows.length ? await redis.mget(rows.map((s) => seatKey(showId, s.id))) : [];
+
+  return rows.map((seat, i) => ({
+    ...seat,
+    status: seat.status === 'available' && holds[i] ? 'held' : seat.status,
+  }));
 };

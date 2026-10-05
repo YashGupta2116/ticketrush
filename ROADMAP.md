@@ -270,7 +270,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
 - **Phase 6 — Seat holds**
   - [x] 6.1 Redis script helper
   - [x] 6.2 Hold seats atomically
-  - [ ] 6.3 Release holds + seat map overlay
+  - [x] 6.3 Release holds + seat map overlay
   - [ ] 6.4 Concurrency tests
 - **Phase 7 — Bookings**
   - [ ] 7.1 Idempotency middleware

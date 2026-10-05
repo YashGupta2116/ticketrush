@@ -245,3 +245,184 @@ describe('POST /api/v1/shows/:id/holds', () => {
     expect(await redis.exists(seatKey(show.id, seatIds[1]!))).toBe(0);
   });
 });
+
+const release = (auth: Auth, showId: string, holdId: string) =>
+  api.delete(`/api/v1/shows/${showId}/holds/${holdId}`).set(auth);
+
+type SeatMapItem = { id: string; status: string };
+const seatMap = async (showId: string) =>
+  (await api.get(`/api/v1/shows/${showId}/seats`)).body.data as SeatMapItem[];
+
+describe('DELETE /api/v1/shows/:showId/holds/:id', () => {
+  it('frees the seats and every Redis key of the hold', async () => {
+    const { show, seatIds } = await setup();
+    const { user, auth } = await createUser();
+    const wanted = seatIds.slice(0, 3);
+    const { holdId } = (await hold(auth, show.id, wanted)).body.data;
+
+    const res = await release(auth, show.id, holdId);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: null });
+    for (const id of wanted) expect(await redis.exists(seatKey(show.id, id))).toBe(0);
+    expect(await redis.exists(metaKey(show.id, holdId))).toBe(0);
+    expect(await redis.exists(userKey(show.id, user.id))).toBe(0);
+  });
+
+  it('lets another user hold the released seats straight away', async () => {
+    const { show, seatIds } = await setup();
+    const alice = await createUser();
+    const bob = await createUser();
+    const { holdId } = (await hold(alice.auth, show.id, [seatIds[0]!])).body.data;
+
+    expect((await hold(bob.auth, show.id, [seatIds[0]!])).status).toBe(409);
+    await release(alice.auth, show.id, holdId);
+
+    expect((await hold(bob.auth, show.id, [seatIds[0]!])).status).toBe(201);
+  });
+
+  it('lets the same user hold again after releasing (the user key is cleared)', async () => {
+    const { show, seatIds } = await setup();
+    const { auth } = await createUser();
+    const { holdId } = (await hold(auth, show.id, [seatIds[0]!])).body.data;
+
+    await release(auth, show.id, holdId);
+
+    expect((await hold(auth, show.id, [seatIds[1]!])).status).toBe(201);
+  });
+
+  it("returns 404 for someone else's hold and leaves it untouched", async () => {
+    const { show, seatIds } = await setup();
+    const alice = await createUser();
+    const mallory = await createUser();
+    const { holdId } = (await hold(alice.auth, show.id, [seatIds[0]!])).body.data;
+
+    const res = await release(mallory.auth, show.id, holdId);
+
+    expect(res.status).toBe(404);
+    expect(await redis.get(seatKey(show.id, seatIds[0]!))).toBe(holdId);
+    expect(await redis.exists(userKey(show.id, alice.user.id))).toBe(1);
+  });
+
+  it("gives the same 404 for an unknown hold as for someone else's hold", async () => {
+    const { show, seatIds } = await setup();
+    const alice = await createUser();
+    const mallory = await createUser();
+    const { holdId } = (await hold(alice.auth, show.id, [seatIds[0]!])).body.data;
+
+    const notYours = await release(mallory.auth, show.id, holdId);
+    const unknown = await release(mallory.auth, show.id, crypto.randomUUID());
+
+    expect(unknown.status).toBe(404);
+    expect(unknown.body.error.message).toBe(notYours.body.error.message);
+  });
+
+  it('returns 404 when the hold was already released', async () => {
+    const { show, seatIds } = await setup();
+    const { auth } = await createUser();
+    const { holdId } = (await hold(auth, show.id, [seatIds[0]!])).body.data;
+
+    expect((await release(auth, show.id, holdId)).status).toBe(200);
+    expect((await release(auth, show.id, holdId)).status).toBe(404);
+  });
+
+  it('returns 404 when the hold has already expired', async () => {
+    const { show, seatIds } = await setup();
+    const { auth } = await createUser();
+    const { holdId } = (await hold(auth, show.id, [seatIds[0]!])).body.data;
+    await redis.del(metaKey(show.id, holdId)); // what Redis does when the TTL runs out
+
+    expect((await release(auth, show.id, holdId)).status).toBe(404);
+  });
+
+  it('never frees a seat that another user has since taken (compare-and-delete)', async () => {
+    const { show, seatIds } = await setup();
+    const alice = await createUser();
+    const { holdId: aliceHold } = (await hold(alice.auth, show.id, [seatIds[0]!, seatIds[1]!])).body
+      .data;
+
+    // Simulate: Alice's hold on seat 0 expired and Bob took that seat with his own hold.
+    const bobHold = crypto.randomUUID();
+    await redis.set(seatKey(show.id, seatIds[0]!), bobHold);
+
+    const res = await release(alice.auth, show.id, aliceHold);
+
+    expect(res.status).toBe(200);
+    expect(await redis.get(seatKey(show.id, seatIds[0]!))).toBe(bobHold); // Bob's hold survives
+    expect(await redis.exists(seatKey(show.id, seatIds[1]!))).toBe(0); // Alice's own seat is freed
+  });
+
+  it('rejects an unauthenticated request with 401 and a non-uuid id with 422', async () => {
+    const { show } = await setup();
+    const { auth } = await createUser();
+
+    expect((await api.delete(`/api/v1/shows/${show.id}/holds/${crypto.randomUUID()}`)).status).toBe(
+      401,
+    );
+    expect((await release(auth, show.id, 'not-a-uuid')).status).toBe(422);
+  });
+});
+
+describe('GET /api/v1/shows/:id/seats (held overlay)', () => {
+  it('shows held seats as held and the rest as available', async () => {
+    const { show, seatIds } = await setup();
+    const { auth } = await createUser();
+    const held = seatIds.slice(0, 2);
+    await hold(auth, show.id, held);
+
+    const map = await seatMap(show.id);
+
+    expect(
+      map
+        .filter((s) => s.status === 'held')
+        .map((s) => s.id)
+        .sort(),
+    ).toEqual([...held].sort());
+    expect(map.filter((s) => s.status === 'available')).toHaveLength(seatIds.length - 2);
+  });
+
+  it('never reveals who holds a seat', async () => {
+    const { show, seatIds } = await setup();
+    const { user, auth } = await createUser();
+    const { holdId } = (await hold(auth, show.id, [seatIds[0]!])).body.data;
+
+    const res = await api.get(`/api/v1/shows/${show.id}/seats`);
+    const body = JSON.stringify(res.body);
+
+    expect(body).not.toContain(user.id);
+    expect(body).not.toContain(holdId);
+    expect(Object.keys(res.body.data[0]).sort()).toEqual(
+      ['id', 'number', 'priceCents', 'row', 'section', 'status', 'tier'].sort(),
+    );
+  });
+
+  it('shows the seats as available again after release', async () => {
+    const { show, seatIds } = await setup();
+    const { auth } = await createUser();
+    const { holdId } = (await hold(auth, show.id, [seatIds[0]!])).body.data;
+    expect((await seatMap(show.id)).filter((s) => s.status === 'held')).toHaveLength(1);
+
+    await release(auth, show.id, holdId);
+
+    expect((await seatMap(show.id)).filter((s) => s.status === 'held')).toHaveLength(0);
+  });
+
+  it('does not show a booked seat as held even if a stale hold key exists', async () => {
+    const { show, seatIds } = await setup();
+    await db.update(showSeats).set({ status: 'booked' }).where(eq(showSeats.id, seatIds[0]!));
+    await redis.set(seatKey(show.id, seatIds[0]!), crypto.randomUUID());
+
+    const map = await seatMap(show.id);
+
+    expect(map.find((s) => s.id === seatIds[0])?.status).toBe('booked');
+  });
+
+  it('keeps holds on different shows separate', async () => {
+    const { admin, show, seatIds } = await setup();
+    const other = await createShow(admin);
+    const { auth } = await createUser();
+    await hold(auth, show.id, [seatIds[0]!]);
+
+    expect((await seatMap(other.show.id)).filter((s) => s.status === 'held')).toHaveLength(0);
+  });
+});
