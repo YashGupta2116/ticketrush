@@ -268,7 +268,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 5.5 Seat map
   - [x] 5.6 Seed script
 - **Phase 6 — Seat holds**
-  - [ ] 6.1 Redis script helper
+  - [x] 6.1 Redis script helper
   - [ ] 6.2 Hold seats atomically
   - [ ] 6.3 Release holds + seat map overlay
   - [ ] 6.4 Concurrency tests

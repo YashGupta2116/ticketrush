@@ -14,6 +14,8 @@ const schema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_ACCESS_TTL: z.string().default('15m'),
   REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  HOLD_TTL_SECONDS: z.coerce.number().int().positive().default(300),
+  MAX_SEATS_PER_HOLD: z.coerce.number().int().positive().default(6),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

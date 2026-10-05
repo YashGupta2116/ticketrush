@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Next: Phase 6 seat holds (6.1 Redis script helper).
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). 6.1 done (Redis Lua script helper). Next: 6.2 hold seats atomically.
 
 ## Project
 
