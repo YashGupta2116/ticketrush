@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Phase 6 done (atomic seat holds in Redis, safe release, held overlay, concurrency proofs). Next: Phase 7 bookings (7.1 idempotency middleware).
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Phase 6 done (atomic seat holds in Redis, safe release, held overlay, concurrency proofs). 7.1 done (idempotency middleware). Next: 7.2 create booking (hold → reserved).
 
 ## Project
 
