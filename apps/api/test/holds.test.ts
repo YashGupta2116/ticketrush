@@ -4,52 +4,11 @@ import { db } from '@/db';
 import { showSeats, shows } from '@/db/schema';
 import { redis } from '@/lib/redis';
 import { metaKey, seatKey, userKey } from '@/modules/holds/holds.keys';
-import { api, createUser } from './helpers';
+import { api, createOnSaleShow as createShow, createUser } from './helpers';
 
 const DAY = 86_400_000;
-const pricing = { standard: 49900, premium: 99900, vip: 249900 };
 
 type Auth = Record<string, string>;
-type SeatDto = { id: string };
-
-const createShow = async (admin: Auth, overrides: Record<string, unknown> = {}) => {
-  const venue = (
-    await api
-      .post('/api/v1/venues')
-      .set(admin)
-      .send({
-        name: 'JLN Arena',
-        city: 'Delhi',
-        sections: [{ name: 'Floor', rows: 2, seatsPerRow: 10, tier: 'standard' }],
-      })
-  ).body.data;
-  const event = (
-    await api
-      .post('/api/v1/events')
-      .set(admin)
-      .send({ title: 'Still Alive', description: 'x'.repeat(60), durationMinutes: 150 })
-  ).body.data;
-  const show = (
-    await api
-      .post('/api/v1/shows')
-      .set(admin)
-      .send({
-        eventId: event.id,
-        venueId: venue.id,
-        startsAt: new Date(Date.now() + 10 * DAY).toISOString(),
-        salesOpenAt: new Date(Date.now() + DAY).toISOString(),
-        pricing,
-        ...overrides,
-      })
-  ).body.data;
-  // salesOpenAt must be in the future for the API, so open sales directly.
-  await db
-    .update(shows)
-    .set({ salesOpenAt: new Date(Date.now() - 1000) })
-    .where(eq(shows.id, show.id));
-  const seatMap: SeatDto[] = (await api.get(`/api/v1/shows/${show.id}/seats`)).body.data;
-  return { show, seatIds: seatMap.map((s) => s.id) };
-};
 
 const hold = (auth: Auth, showId: string, showSeatIds: string[]) =>
   api.post(`/api/v1/shows/${showId}/holds`).set(auth).send({ showSeatIds });

@@ -271,7 +271,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 6.1 Redis script helper
   - [x] 6.2 Hold seats atomically
   - [x] 6.3 Release holds + seat map overlay
-  - [ ] 6.4 Concurrency tests
+  - [x] 6.4 Concurrency tests
 - **Phase 7 — Bookings**
   - [ ] 7.1 Idempotency middleware
   - [ ] 7.2 Create booking (hold → reserved)

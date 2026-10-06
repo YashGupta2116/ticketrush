@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). 6.1–6.3 done (Lua script helper, atomic seat holds, safe release + held overlay on the seat map). Next: 6.4 concurrency tests.
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Phase 6 done (atomic seat holds in Redis, safe release, held overlay, concurrency proofs). Next: Phase 7 bookings (7.1 idempotency middleware).
 
 ## Project
 
@@ -46,6 +46,7 @@ Tests are Vitest + Supertest integration tests against real Postgres (`ticketrus
 - Import via the `@/` alias (`apps/api/src`); works in tsx, tsup and tsc.
 - API: base `/api/v1`, plural nouns, success `{ data }`, errors `{ error: { code, message, details?, requestId } }`. Money is integer minor units (paise); timestamps `timestamptz`/ISO-8601 UTC; UUID ids.
 - DRY rule: same kind of code in more than 2 files → extract to `src/lib/`. Every business step ships with at least one integration test (real Postgres/Redis). Significant decisions get `docs/adr/NNNN-title.md` (template: `docs/adr/0000-template.md`).
+- Test fixtures shared across files live in `apps/api/test/helpers.ts` (`api`, `createUser`, `createOnSaleShow`). Concurrency tests (`holds.concurrency.test.ts`) fire requests with `Promise.all` and assert invariants; verify a new one by mutating the code under test and confirming it fails.
 - Files are kebab-case with a role suffix (`holds.service.ts`); DB columns snake_case.
 
 ## Tooling notes
