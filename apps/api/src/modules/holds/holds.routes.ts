@@ -4,7 +4,9 @@ import { authenticate, currentUser } from '@/middlewares/auth';
 import { holdSeatsSchema, releaseHoldSchema } from './holds.schema';
 import { holdSeats, releaseHold } from './holds.service';
 
-export const holdsRouter = Router().post(
+export const holdsRouter = Router();
+
+holdsRouter.post(
   '/shows/:id/holds',
   authenticate,
   route(
@@ -13,6 +15,7 @@ export const holdsRouter = Router().post(
     { status: 201 },
   ),
 );
+
 holdsRouter.delete(
   '/shows/:showId/holds/:id',
   authenticate,

@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { isForeignKeyViolation } from '@/db/errors';
 import { events, seats, shows, showSeats, venues } from '@/db/schema';
 import { Errors } from '@/lib/errors';
-import { decodeCursor, paginate } from '@/lib/pagination';
+import { paginate, parseCursor } from '@/lib/pagination';
 import type { createShowSchema, listShowsSchema } from './shows.schema';
 import { redis } from '@/lib/redis';
 import { seatKey } from '../holds/holds.keys';
@@ -48,14 +48,8 @@ export const createShow = async ({
 
 const cursorSchema = z.object({ startsAt: z.coerce.date(), id: z.uuid() });
 
-const parseCursor = (cursor: string) => {
-  const parsed = cursorSchema.safeParse(decodeCursor(cursor));
-  if (!parsed.success) throw Errors.badRequest('Invalid cursor');
-  return parsed.data;
-};
-
 export const listShows = async ({ city, from, limit, cursor }: ListShowsQuery) => {
-  const after = cursor ? parseCursor(cursor) : undefined;
+  const after = cursor ? parseCursor(cursorSchema, cursor) : undefined;
 
   const rows = await db
     .select({

@@ -16,6 +16,7 @@ const schema = z.object({
   REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(7),
   HOLD_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   MAX_SEATS_PER_HOLD: z.coerce.number().int().positive().default(6),
+  PAYMENT_WINDOW_MINUTES: z.coerce.number().int().positive().default(10),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 
