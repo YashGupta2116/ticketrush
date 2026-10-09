@@ -278,18 +278,18 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 7.3 Locking strategy switch + ADR _(optional, recommended)_
 - **Phase 8 — Payments**
   - [x] 8.1 Mock provider + webhook plumbing
-  - [ ] 8.2 Start payment
-  - [ ] 8.3 Webhook handler
+  - [x] 8.2 Start payment
+  - [x] 8.3 Webhook handler
 - **Phase 9 — Background jobs**
-  - [ ] 9.1 BullMQ + worker process
-  - [ ] 9.2 Expire unpaid bookings
-  - [ ] 9.3 Reconciliation sweeper
+  - [x] 9.1 BullMQ + worker process
+  - [x] 9.2 Expire unpaid bookings
+  - [x] 9.3 Reconciliation sweeper
 - **Phase 10 — Real-time**
-  - [ ] 10.1 Pub/sub + SSE helpers
-  - [ ] 10.2 Live seat map stream
+  - [x] 10.1 Pub/sub + SSE helpers
+  - [x] 10.2 Live seat map stream
 - **Phase 11 — Protection under load**
-  - [ ] 11.1 Rate limiter
-  - [ ] 11.2 Cache-aside for hot reads
+  - [x] 11.1 Rate limiter
+  - [x] 11.2 Cache-aside for hot reads
   - [ ] 11.3 Virtual waiting room
 - **Phase 12 — Observability**
   - [ ] 12.1 Prometheus metrics
@@ -297,16 +297,16 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [ ] 13.1 Load-test fixture + k6 script
   - [ ] 13.2 Run the rush, publish results
 - **Phase 14 — Frontend**
-  - [ ] 14.1 Next.js app + shared package
-  - [ ] 14.2 API client + SSE hook
-  - [ ] 14.3 Auth + browse pages
-  - [ ] 14.4 Live seat map
-  - [ ] 14.5 Checkout
+  - [x] 14.1 Next.js app + shared package
+  - [x] 14.2 API client + SSE hook
+  - [x] 14.3 Auth + browse pages
+  - [x] 14.4 Live seat map
+  - [x] 14.5 Checkout
   - [ ] 14.6 Waiting room
 - **Phase 15 — Ship**
   - [ ] 15.1 Docker images + full compose
   - [ ] 15.2 CI pipeline
-  - [ ] 15.3 README, ADRs, benchmarks
+  - [x] 15.3 README, ADRs, benchmarks
 
 ---
 

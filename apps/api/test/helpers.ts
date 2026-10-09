@@ -73,3 +73,22 @@ export const createOnSaleShow = async (
   const seatMap: { id: string }[] = (await api.get(`/api/v1/shows/${show.id}/seats`)).body.data;
   return { show, seatIds: seatMap.map((s) => s.id) };
 };
+
+/** A user with a pending booking for `seatCount` seats, created through the real API. */
+export const createPendingBooking = async (seatCount = 2) => {
+  const { auth: admin } = await createUser({ role: 'admin' });
+  const { show, seatIds } = await createOnSaleShow(admin);
+  const { user, auth } = await createUser();
+  const wanted = seatIds.slice(0, seatCount);
+  const { holdId } = (
+    await api.post(`/api/v1/shows/${show.id}/holds`).set(auth).send({ showSeatIds: wanted })
+  ).body.data;
+  const booking = (
+    await api
+      .post('/api/v1/bookings')
+      .set(auth)
+      .set('Idempotency-Key', randomUUID())
+      .send({ showId: show.id, holdId })
+  ).body.data;
+  return { user, auth, show, seatIds: wanted, booking };
+};

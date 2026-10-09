@@ -21,6 +21,7 @@ const schema = z.object({
   API_URL: z.url().default('http://localhost:4000'),
   PAYMENT_WEBHOOK_SECRET: z.string().min(32),
   MOCK_PAYMENT_FAILURE_RATE: z.coerce.number().min(0).max(1).default(0.2),
+  RATE_LIMIT_ENABLED: z.stringbool().default(true),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

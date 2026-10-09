@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-paper: #f3eee4;
+  --color-card: #faf7f0;
+  --color-ink: #17140f;
+  --color-muted: #7d7567;
+  --color-line: #d8cfbd;
+  --color-accent: #c8401e;
+  --color-ok: #2f6b4f;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* Ticket stub: a dashed tear line with a notch cut out at both ends. */
+.tear {
+  position: relative;
+  border-left: 2px dashed var(--color-line);
+}
+.tear::before,
+.tear::after {
+  content: '';
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-line);
+}
+.tear::before {
+  top: -9px;
+  clip-path: inset(50% 0 0 0);
+}
+.tear::after {
+  bottom: -9px;
+  clip-path: inset(0 0 50% 0);
+}
+
+/* Seats that someone else is holding or has bought. */
+.seat-taken {
+  background: repeating-linear-gradient(135deg, transparent 0 3px, var(--color-line) 3px 4px);
+}
+
+@theme inline {
+  --color-tier-standard: #ece4d3;
+  --color-tier-premium: #e8cfae;
+  --color-tier-vip: #dfb4a0;
+}

@@ -7,6 +7,7 @@ import { Errors } from '@/lib/errors';
 import { paginate, parseCursor } from '@/lib/pagination';
 import type { createShowSchema, listShowsSchema } from './shows.schema';
 import { redis } from '@/lib/redis';
+import { cached } from '@/lib/cache';
 import { seatKey } from '../holds/holds.keys';
 
 type CreateShowInput = z.infer<typeof createShowSchema>['body'];
@@ -93,55 +94,73 @@ export const isOnSale = ({ show, now = new Date() }: IsOnSaleSchema) => {
 };
 
 export const getShow = async (id: string) => {
-  const [row] = await db
-    .select({
-      show: shows,
-      event: {
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        durationMinutes: events.durationMinutes,
-      },
-      venue: { id: venues.id, name: venues.name, city: venues.city, address: venues.address },
-    })
-    .from(shows)
-    .innerJoin(events, eq(shows.eventId, events.id))
-    .innerJoin(venues, eq(shows.venueId, venues.id))
-    .where(eq(shows.id, id));
+  // The static part is cached for 60s; `onSale` is derived from the clock on every read.
+  const row = await cached(`cache:show:${id}`, 60, async () => {
+    const [found] = await db
+      .select({
+        show: shows,
+        event: {
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          durationMinutes: events.durationMinutes,
+        },
+        venue: { id: venues.id, name: venues.name, city: venues.city, address: venues.address },
+      })
+      .from(shows)
+      .innerJoin(events, eq(shows.eventId, events.id))
+      .innerJoin(venues, eq(shows.venueId, venues.id))
+      .where(eq(shows.id, id));
+    if (!found) throw Errors.notFound('Show not found');
+    return found;
+  });
 
-  if (!row) throw Errors.notFound('Show not found');
-
-  return { ...row.show, onSale: isOnSale({ show: row.show }), event: row.event, venue: row.venue };
+  // JSON turns dates into strings, so convert the two that `isOnSale` compares, here at the boundary.
+  const show = {
+    ...row.show,
+    startsAt: new Date(row.show.startsAt),
+    salesOpenAt: new Date(row.show.salesOpenAt),
+  };
+  return { ...show, onSale: isOnSale({ show }), event: row.event, venue: row.venue };
 };
 
 export const getSeatMap = async (showId: string) => {
-  // An existing show always has seats, so an empty result can only mean the show is unknown.
-  const show = await db.query.shows.findFirst({
-    columns: { id: true },
-    where: eq(shows.id, showId),
+  // The layout never changes after creation, so it is cached; statuses are always read live.
+  const layout = await cached(`cache:show:${showId}:layout`, 3600, async () => {
+    const show = await db.query.shows.findFirst({
+      columns: { id: true },
+      where: eq(shows.id, showId),
+    });
+    if (!show) throw Errors.notFound('Show not found');
+
+    // `id` is the show_seat id: that is what gets held and booked, not the physical seat's id.
+    return db
+      .select({
+        id: showSeats.id,
+        section: seats.section,
+        row: seats.row,
+        number: seats.number,
+        tier: seats.tier,
+        priceCents: showSeats.priceCents,
+      })
+      .from(showSeats)
+      .innerJoin(seats, eq(showSeats.seatId, seats.id))
+      .where(eq(showSeats.showId, showId))
+      .orderBy(asc(seats.section), asc(seats.row), asc(seats.number));
   });
-  if (!show) throw Errors.notFound('Show not found');
 
-  // `id` is the show_seat id: that is what gets held and booked, not the physical seat's id.
-  const rows = await db
-    .select({
-      id: showSeats.id,
-      section: seats.section,
-      row: seats.row,
-      number: seats.number,
-      tier: seats.tier,
-      priceCents: showSeats.priceCents,
-      status: showSeats.status,
-    })
-    .from(showSeats)
-    .innerJoin(seats, eq(showSeats.seatId, seats.id))
-    .where(eq(showSeats.showId, showId))
-    .orderBy(asc(seats.section), asc(seats.row), asc(seats.number));
+  const statuses = new Map(
+    (
+      await db
+        .select({ id: showSeats.id, status: showSeats.status })
+        .from(showSeats)
+        .where(eq(showSeats.showId, showId))
+    ).map((s) => [s.id, s.status]),
+  );
+  const holds = layout.length ? await redis.mget(layout.map((s) => seatKey(showId, s.id))) : [];
 
-  const holds = rows.length ? await redis.mget(rows.map((s) => seatKey(showId, s.id))) : [];
-
-  return rows.map((seat, i) => ({
-    ...seat,
-    status: seat.status === 'available' && holds[i] ? 'held' : seat.status,
-  }));
+  return layout.map((seat, i) => {
+    const status = statuses.get(seat.id) ?? 'available';
+    return { ...seat, status: status === 'available' && holds[i] ? 'held' : status };
+  });
 };

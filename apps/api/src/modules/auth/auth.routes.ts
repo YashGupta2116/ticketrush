@@ -5,6 +5,7 @@ import { noInput } from '@/lib/schemas';
 import { loginSchema, registerSchema } from './auth.schema';
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './auth.cookies';
 import { authenticate, currentUser } from '@/middlewares/auth';
+import { byIp, rateLimit } from '@/middlewares/rate-limit';
 
 export const authRouter = Router();
 
@@ -23,6 +24,12 @@ authRouter.post(
 
 authRouter.post(
   '/login',
+  rateLimit({
+    name: 'login',
+    limit: 5,
+    windowSec: 60,
+    key: (req) => `${byIp(req)}:${String(req.body?.email ?? '').toLowerCase()}`,
+  }),
   route(
     loginSchema,
     async ({ body }, { res }) => {

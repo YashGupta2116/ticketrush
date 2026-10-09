@@ -8,6 +8,7 @@ import { isOnSale } from '@/modules/shows/shows.service';
 import { metaKey, seatKey, userKey } from './holds.keys';
 import { holdScript, releaseScript } from './holds.scripts';
 import { redis } from '@/lib/redis';
+import { emitSeatChanges } from '../shows/seat-events';
 
 const seatsUnavailable = (showSeatIds: string[]) =>
   new AppError(409, 'Some seats are no longer available', 'SEATS_UNAVAILABLE', { showSeatIds });
@@ -54,6 +55,7 @@ export const holdSeats = async (userId: string, showId: string, showSeatIds: str
     throw seatsUnavailable(takenPositions.map((position) => showSeatIds[position - 1]!));
   }
 
+  await emitSeatChanges(showId, showSeatIds, 'held');
   return { holdId, showSeatIds, expiresAt };
 };
 
@@ -72,4 +74,11 @@ export const releaseHold = async (userId: string, showId: string, holdId: string
     ],
     [holdId],
   );
+  return meta.showSeatIds;
+};
+
+/** Releases a hold at the user's request and tells viewers the seats are free again. */
+export const cancelHold = async (userId: string, showId: string, holdId: string) => {
+  const showSeatIds = await releaseHold(userId, showId, holdId);
+  await emitSeatChanges(showId, showSeatIds, 'available');
 };

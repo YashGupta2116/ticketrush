@@ -3,14 +3,25 @@ import { redis } from '@/lib/redis';
 import { metaKey } from '../holds/holds.keys';
 import { randomUUID } from 'node:crypto';
 import { env } from '@/config/env';
-import { db } from '@/db';
-import { bookingItems, bookings, seats, showSeats } from '@/db/schema';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { db, type Executor } from '@/db';
+import {
+  bookingItems,
+  bookings,
+  events,
+  payments,
+  seats,
+  showSeats,
+  shows,
+  venues,
+} from '@/db/schema';
+import { and, desc, eq, getTableColumns, inArray, lt, sql } from 'drizzle-orm';
 import { releaseHold } from '../holds/holds.service';
 import { logger } from '@/lib/logger';
 import { paginate, parseCursor } from '@/lib/pagination';
 import { z } from 'zod';
 import { createStateMachine } from '@/lib/state-machine';
+import { bookingQueue } from '@/jobs/queues';
+import { emitSeatChanges } from '../shows/seat-events';
 import type { listBookingsSchema } from './bookings.schema';
 
 export type BookingStatus = (typeof bookings.$inferSelect)['status'];
@@ -118,10 +129,23 @@ export const createBooking = async (userId: string, showId: string, holdId: stri
     logger.error({ err, holdId }, 'Failed to release the hold after booking'),
   );
 
-  // TODO: (9.2) schedule expiry
-  // TODO: (10.2) publish seat changes
+  // The sweeper (reconcileExpiredBookings) covers a crash or Redis failure between commit and here.
+  await bookingQueue
+    .add(
+      'expire',
+      { bookingId },
+      { delay: Math.max(0, expiresAt.getTime() - Date.now()), jobId: `expire-${bookingId}` },
+    )
+    .catch((err) => logger.error({ err, bookingId }, 'Failed to schedule booking expiry'));
+  await emitSeatChanges(showId, meta.showSeatIds, 'reserved');
 
   return booking;
+};
+
+const showInfo = {
+  eventTitle: events.title,
+  startsAt: shows.startsAt,
+  venueName: venues.name,
 };
 
 const cursorSchema = z.object({ createdAt: z.coerce.date(), id: z.uuid() });
@@ -132,8 +156,11 @@ export const listMyBookings = async (userId: string, { limit, cursor }: ListBook
   const after = cursor ? parseCursor(cursorSchema, cursor) : undefined;
 
   const rows = await db
-    .select()
+    .select({ ...getTableColumns(bookings), ...showInfo })
     .from(bookings)
+    .innerJoin(shows, eq(bookings.showId, shows.id))
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
     .where(
       and(
         eq(bookings.userId, userId),
@@ -150,8 +177,11 @@ export const listMyBookings = async (userId: string, { limit, cursor }: ListBook
 
 export const getMyBooking = async (userId: string, id: string) => {
   const [booking] = await db
-    .select()
+    .select({ ...getTableColumns(bookings), ...showInfo })
     .from(bookings)
+    .innerJoin(shows, eq(bookings.showId, shows.id))
+    .innerJoin(events, eq(shows.eventId, events.id))
+    .innerJoin(venues, eq(shows.venueId, venues.id))
     .where(and(eq(bookings.userId, userId), eq(bookings.id, id)))
     .limit(1);
 
@@ -172,5 +202,73 @@ export const getMyBooking = async (userId: string, id: string) => {
     .where(eq(bookingItems.bookingId, booking.id))
     .orderBy(seats.section, seats.row, seats.number);
 
-  return { ...booking, items };
+  const payment = await db.query.payments.findFirst({
+    columns: { id: true, status: true },
+    where: eq(payments.bookingId, booking.id),
+    orderBy: desc(payments.createdAt),
+  });
+
+  return { ...booking, items, payment: payment ?? null };
+};
+
+/** Moves every seat of a booking from one status to another. Returns the ids that moved. */
+export const moveBookingSeats = async (
+  executor: Executor,
+  bookingId: string,
+  from: 'reserved',
+  to: 'booked' | 'available',
+) => {
+  const moved = await executor
+    .update(showSeats)
+    .set({
+      status: to,
+      bookingId: to === 'available' ? null : bookingId,
+      version: sql`${showSeats.version} + 1`,
+    })
+    .where(and(eq(showSeats.bookingId, bookingId), eq(showSeats.status, from)))
+    .returning({ id: showSeats.id });
+  return moved.map((s) => s.id);
+};
+
+/**
+ * Expires a pending booking and frees its seats. Idempotent: jobs are delivered at least once.
+ * If a payment is still processing at this moment we expire anyway: a late success webhook
+ * turns that payment into `refund_pending` (see payments.service), it never resurrects the booking.
+ */
+export const expireBooking = async (bookingId: string) => {
+  const result = await db.transaction(async (tx) => {
+    const [booking] = await tx
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, bookingId))
+      .for('update');
+    if (!booking || booking.status !== 'pending') return null;
+
+    bookingMachine.assert(booking.status, 'expired');
+    await tx.update(bookings).set({ status: 'expired' }).where(eq(bookings.id, bookingId));
+    const seatIds = await moveBookingSeats(tx, bookingId, 'reserved', 'available');
+    return { showId: booking.showId, seatIds };
+  });
+
+  if (!result) return false;
+  await emitSeatChanges(result.showId, result.seatIds, 'available');
+  return true;
+};
+
+/** Safety net for the dual write "commit booking, then enqueue expiry". */
+export const reconcileExpiredBookings = async () => {
+  const stale = await db
+    .select({ id: bookings.id })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.status, 'pending'),
+        lt(bookings.expiresAt, sql`now() - interval '30 seconds'`),
+      ),
+    )
+    .limit(100);
+
+  let expired = 0;
+  for (const { id } of stale) if (await expireBooking(id)) expired++;
+  return expired;
 };

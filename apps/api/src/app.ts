@@ -4,6 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { env } from '@/config/env';
 import { errorHandler, notFound } from '@/middlewares/error-handler';
+import { byIp, rateLimit } from '@/middlewares/rate-limit';
 import { httpLogger } from '@/middlewares/http-logger';
 import { healthRouter } from '@/modules/health/health.routes';
 import { webhooksRouter } from '@/modules/payments/webhooks.routes';
@@ -23,7 +24,11 @@ export const createApp = () => {
     webhooksRouter,
   );
 
-  app.use(express.json({ limit: '100kb' }), cookieParser());
+  app.use(
+    rateLimit({ name: 'global', limit: 300, windowSec: 60, key: byIp }),
+    express.json({ limit: '100kb' }),
+    cookieParser(),
+  );
 
   app.use('/health', healthRouter);
   app.use('/api/v1', apiRouter);

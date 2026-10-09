@@ -48,6 +48,6 @@ describe('POST /api/v1/webhooks/payments', () => {
       .post('/api/v1/webhooks/payments')
       .set('content-type', 'application/json')
       .send('{"raw":true}');
-    expect(res.status).toBe(501); // replaced by real handling in 8.3
+    expect(res.status).toBe(400); // reached the handler; rejected for the missing signature
   });
 });
