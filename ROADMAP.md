@@ -275,7 +275,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
 - **Phase 7 — Bookings**
   - [x] 7.1 Idempotency middleware
   - [x] 7.2 Create booking (hold → reserved)
-  - [ ] 7.3 Locking strategy switch + ADR _(optional, recommended)_
+  - [x] 7.3 Locking strategy switch + ADR _(optional, recommended)_
 - **Phase 8 — Payments**
   - [ ] 8.1 Mock provider + webhook plumbing
   - [ ] 8.2 Start payment

@@ -12,6 +12,68 @@ import { paginate, parseCursor } from '@/lib/pagination';
 import { z } from 'zod';
 import type { listBookingsSchema } from './bookings.schema';
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type ReservedSeat = { id: string; priceCents: number };
+
+const seatsUnavailable = () =>
+  new AppError(409, 'Some seats are no longer available', 'SEATS_UNAVAILABLE');
+
+/** One conditional UPDATE: Postgres lets exactly one writer flip each row from 'available'. */
+const reserveConditional = async (
+  tx: Tx,
+  bookingId: string,
+  showId: string,
+  showSeatIds: string[],
+): Promise<ReservedSeat[]> => {
+  const reserved = await tx
+    .update(showSeats)
+    .set({ status: 'reserved', bookingId, version: sql`${showSeats.version} + 1` })
+    .where(
+      and(
+        eq(showSeats.showId, showId),
+        inArray(showSeats.id, showSeatIds),
+        eq(showSeats.status, 'available'),
+      ),
+    )
+    .returning({ id: showSeats.id, priceCents: showSeats.priceCents });
+
+  if (reserved.length !== showSeatIds.length) throw seatsUnavailable();
+  return reserved;
+};
+
+/**
+ * Lock the rows first, check them in TypeScript, then update. `ORDER BY id` gives every
+ * transaction the same lock order, so two overlapping bookings cannot deadlock each other.
+ * A waiter blocks until the winner commits, then re-reads the row as 'reserved' and fails.
+ */
+const reservePessimistic = async (
+  tx: Tx,
+  bookingId: string,
+  showId: string,
+  showSeatIds: string[],
+): Promise<ReservedSeat[]> => {
+  const locked = await tx
+    .select({ id: showSeats.id, status: showSeats.status, priceCents: showSeats.priceCents })
+    .from(showSeats)
+    .where(and(eq(showSeats.showId, showId), inArray(showSeats.id, showSeatIds)))
+    .orderBy(showSeats.id)
+    .for('update');
+
+  if (locked.length !== showSeatIds.length || locked.some((s) => s.status !== 'available')) {
+    throw seatsUnavailable();
+  }
+
+  await tx
+    .update(showSeats)
+    .set({ status: 'reserved', bookingId, version: sql`${showSeats.version} + 1` })
+    .where(inArray(showSeats.id, showSeatIds));
+
+  return locked.map(({ id, priceCents }) => ({ id, priceCents }));
+};
+
+const reserve =
+  env.BOOKING_LOCK_STRATEGY === 'pessimistic' ? reservePessimistic : reserveConditional;
+
 export const createBooking = async (userId: string, showId: string, holdId: string) => {
   const raw = await redis.get(metaKey(showId, holdId));
   if (!raw) throw new AppError(410, 'Your hold has expired', 'HOLD_EXPIRED');
@@ -25,21 +87,7 @@ export const createBooking = async (userId: string, showId: string, holdId: stri
   const booking = await db.transaction(async (tx) => {
     await tx.insert(bookings).values({ id: bookingId, userId, showId, expiresAt, totalCents: 0 });
 
-    const reserved = await tx
-      .update(showSeats)
-      .set({ status: 'reserved', bookingId, version: sql`${showSeats.version} + 1` })
-      .where(
-        and(
-          eq(showSeats.showId, showId),
-          inArray(showSeats.id, meta.showSeatIds),
-          eq(showSeats.status, 'available'),
-        ),
-      )
-      .returning({ id: showSeats.id, priceCents: showSeats.priceCents });
-
-    if (reserved.length !== meta.showSeatIds.length) {
-      throw new AppError(409, 'Some seats are no longer available', 'SEATS_UNAVAILABLE');
-    }
+    const reserved = await reserve(tx, bookingId, showId, meta.showSeatIds);
 
     await tx
       .insert(bookingItems)

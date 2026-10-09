@@ -17,6 +17,7 @@ const schema = z.object({
   HOLD_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   MAX_SEATS_PER_HOLD: z.coerce.number().int().positive().default(6),
   PAYMENT_WINDOW_MINUTES: z.coerce.number().int().positive().default(10),
+  BOOKING_LOCK_STRATEGY: z.enum(['conditional', 'pessimistic']).default('conditional'),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

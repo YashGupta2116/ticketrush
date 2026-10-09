@@ -13,7 +13,7 @@ Working agreement (from the roadmap's continuation prompt):
 - If a roadmap snippet is outdated (library API/version changes), say so and give the fix.
 - Tick the progress tracker in `ROADMAP.md` as steps complete.
 
-Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Phase 6 done (atomic seat holds in Redis, safe release, held overlay, concurrency proofs). 7.1 done (idempotency middleware). 7.2 done (create booking from hold, list/get my bookings). Next: 7.3 locking-strategy ADR (record the `{ showId, holdId }` body deviation).
+Current position: Phases 0–3 done (foundation, HTTP, infra + test harness, data model); Phase 4 done (auth: register, login, refresh rotation, logout, `/me`). 5.1–5.3 done (pagination helpers, venues + seat layouts, events, shows + set-based seat inventory). 5.4 done (show listing with keyset pagination, show detail with derived onSale). Phase 5 done (catalog complete, seed script via `pnpm --filter api db:seed`). Phase 6 done (atomic seat holds in Redis, safe release, held overlay, concurrency proofs). 7.1 done (idempotency middleware). 7.2 done (create booking from hold, list/get my bookings). 7.3 done (BOOKING_LOCK_STRATEGY conditional|pessimistic, ADR 0004). Next: Phase 8 payments (8.1 mock provider + webhook plumbing).
 
 ## Project
 
