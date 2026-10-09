@@ -22,6 +22,7 @@ const schema = z.object({
   PAYMENT_WEBHOOK_SECRET: z.string().min(32),
   MOCK_PAYMENT_FAILURE_RATE: z.coerce.number().min(0).max(1).default(0.2),
   RATE_LIMIT_ENABLED: z.stringbool().default(true),
+  SEED_ADMIN_PASSWORD: z.string().min(8).optional(),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

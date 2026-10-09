@@ -304,7 +304,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 14.5 Checkout
   - [ ] 14.6 Waiting room
 - **Phase 15 — Ship**
-  - [ ] 15.1 Docker images + full compose
+  - [x] 15.1 Docker images + full compose
   - [ ] 15.2 CI pipeline
   - [x] 15.3 README, ADRs, benchmarks
 

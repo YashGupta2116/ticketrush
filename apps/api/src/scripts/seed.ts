@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { isProd } from '@/config/env';
+import { env, isProd } from '@/config/env';
 import { runShutdownTasks } from '@/lib/lifecycle';
 import { register } from '@/modules/auth/auth.service';
 import { createEvent } from '@/modules/events/events.service';
@@ -9,10 +9,16 @@ import { createShow } from '@/modules/shows/shows.service';
 import { createVenue } from '@/modules/venues/venues.service';
 
 const DAY = 86_400_000;
-const ADMIN = { name: 'Admin', email: 'admin@ticketrush.dev', password: 'Admin123!' };
+const ADMIN = {
+  name: 'Admin',
+  email: 'admin@ticketrush.dev',
+  password: env.SEED_ADMIN_PASSWORD ?? 'Admin123!',
+};
 
-if (isProd)
-  throw new Error('Refusing to seed demo data (with a known admin password) in production');
+// The default password is public (it is in this file), so production needs one of your own.
+if (isProd && !env.SEED_ADMIN_PASSWORD) {
+  throw new Error('Set SEED_ADMIN_PASSWORD to seed in production: the default password is public');
+}
 
 // Idempotent: running the seed twice must not create duplicate demo data.
 if (await db.query.users.findFirst({ where: eq(users.email, ADMIN.email) })) {
@@ -46,12 +52,13 @@ for (const [i, isHighDemand] of [false, false, true].entries()) {
   await createShow({
     eventId: event.id,
     venueId: venue.id,
-    startsAt: new Date(Date.now() + (i + 7) * DAY),
+    startsAt: new Date(Date.now() + (i + 21) * DAY), // far enough out that a deployed demo stays fresh
     salesOpenAt: new Date(),
     pricing: { standard: 99_900, premium: 249_900, vip: 499_900 },
     isHighDemand,
   });
 }
 
-console.log(`Seeded: ${ADMIN.email} / ${ADMIN.password} (${venue.seatCount} seats × 3 shows)`);
+const shownPassword = env.SEED_ADMIN_PASSWORD ? '' : ` / ${ADMIN.password}`;
+console.log(`Seeded: ${ADMIN.email}${shownPassword} (${venue.seatCount} seats × 3 shows)`);
 await runShutdownTasks();

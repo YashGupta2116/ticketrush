@@ -1,0 +1,20 @@
+# SITE_ADDRESS is a hostname (Caddy gets a Let's Encrypt certificate for it) or ":80" for plain HTTP.
+{$SITE_ADDRESS} {
+	# The live seat stream must not be compressed or buffered, so it gets its own route first.
+	@stream path_regexp ^/api/v1/shows/[^/]+/seats/stream$
+	handle @stream {
+		reverse_proxy api:4000 {
+			flush_interval -1
+		}
+	}
+
+	handle /api/* {
+		encode zstd gzip
+		reverse_proxy api:4000
+	}
+
+	handle {
+		encode zstd gzip
+		reverse_proxy web:3000
+	}
+}

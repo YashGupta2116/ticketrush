@@ -4,6 +4,7 @@ dist
 coverage
 .env
 .env.*.local
+.env.prod
 *.log
 .DS_Store
 infra/k6/fixture.json

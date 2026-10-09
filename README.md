@@ -39,6 +39,11 @@ Copy `apps/api/.env.example` to `apps/api/.env` and `apps/web/.env.example` to `
 (set `JWT_ACCESS_SECRET` and `PAYMENT_WEBHOOK_SECRET` to random 32+ character strings). The mock
 payment provider fails 20% of payments on purpose (`MOCK_PAYMENT_FAILURE_RATE`) to exercise retries.
 
+## Deploy
+
+One server runs everything with Docker Compose (`docker-compose.prod.yml`), with Caddy providing
+HTTPS on a single origin. The step-by-step guide for AWS is in [`docs/deployment.md`](docs/deployment.md).
+
 ## Design decisions (see `docs/adr/`)
 
 | ADR  | Decision                                                                                    |
@@ -62,7 +67,6 @@ payment provider fails 20% of payments on purpose (`MOCK_PAYMENT_FAILURE_RATE`) 
 
 ## Not built (deliberate)
 
-Virtual waiting room, Prometheus metrics, k6 load tests with published numbers, Docker images and
-CI. Known gaps: refunds are only flagged (`refund_pending`), a show cancelled after a hold can
+Virtual waiting room, Prometheus metrics, k6 load tests with published numbers, and CI. Known gaps: refunds are only flagged (`refund_pending`), a show cancelled after a hold can
 still be booked, and expired holds free their seats on the next map refresh (≤15 s) rather than
 instantly. No admin UI; use the API or the seed script.
