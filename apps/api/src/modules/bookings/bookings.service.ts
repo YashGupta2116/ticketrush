@@ -10,7 +10,18 @@ import { releaseHold } from '../holds/holds.service';
 import { logger } from '@/lib/logger';
 import { paginate, parseCursor } from '@/lib/pagination';
 import { z } from 'zod';
+import { createStateMachine } from '@/lib/state-machine';
 import type { listBookingsSchema } from './bookings.schema';
+
+export type BookingStatus = (typeof bookings.$inferSelect)['status'];
+
+/** Nothing leaves confirmed / expired / cancelled (for now). */
+export const bookingMachine = createStateMachine<BookingStatus>('booking', {
+  pending: ['confirmed', 'expired', 'cancelled'],
+  confirmed: [],
+  expired: [],
+  cancelled: [],
+});
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type ReservedSeat = { id: string; priceCents: number };

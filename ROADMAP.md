@@ -277,7 +277,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `build`, `ci`, `perf`
   - [x] 7.2 Create booking (hold → reserved)
   - [x] 7.3 Locking strategy switch + ADR _(optional, recommended)_
 - **Phase 8 — Payments**
-  - [ ] 8.1 Mock provider + webhook plumbing
+  - [x] 8.1 Mock provider + webhook plumbing
   - [ ] 8.2 Start payment
   - [ ] 8.3 Webhook handler
 - **Phase 9 — Background jobs**
